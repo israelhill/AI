@@ -1,5 +1,6 @@
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -67,6 +68,11 @@ public class Puzzle {
         return finalBoard;
     }
 
+    public static void readCommandsFromFile(String fileName) throws IOException {
+        Stream<String> stream = Files.lines(Paths.get(fileName));
+            stream.forEach(System.out::println);
+    }
+
     public static void main(String[] args) {
 //        Puzzle p = new Puzzle("312 6b4 785");
 //        Board solution = p.solvePuzzle();
@@ -82,14 +88,12 @@ public class Puzzle {
 
         if(args[0].equals("readFile")) {
             String fileName = args[1];
-            try (Stream<String> stream = Files.lines(Paths.get(fileName))) {
-                stream.forEach(System.out::println);
+            try {
+                readCommandsFromFile(fileName);
             }
-            catch(Exception e) {
+            catch (IOException e) {
                 e.printStackTrace();
             }
-
-            
         }
     }
 }
