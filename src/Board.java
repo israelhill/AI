@@ -46,6 +46,10 @@ public class Board {
         return this.parent;
     }
 
+    /**
+     * Heuristic h1: compute the number of tiles in incorrect positions
+     * @return the number of tiles out of place
+     */
     public int goalOffset() {
         int offset = 0;
         for(int i = 0; i < 3; i++) {
@@ -58,6 +62,11 @@ public class Board {
         return offset;
     }
 
+    /**
+     * Given a string representing the board state, create a
+     * 2-D array representation of the board.
+     * @param state string representation of the board
+     */
     public void setState(String state) {
         String stateNoSpaces = state.replace(" ", "");
         char[] characters = stateNoSpaces.toCharArray();
@@ -99,6 +108,9 @@ public class Board {
         return this.h;
     }
 
+    /**
+     * Locate and set the coordinates of the blank tile
+     */
     public void findBlank() {
         for(int i = 0; i < 3; i++) {
             for(int j = 0; j < 3; j++) {
@@ -110,6 +122,10 @@ public class Board {
         }
     }
 
+    /**
+     * Get all the valid board states reachable from the parent board
+     * @return a list of valid boards
+     */
     public ArrayList<Board> getValidChildren() {
         ArrayList<Board> children = new ArrayList<>();
         if(this.isLegalMove("up")) {
@@ -177,6 +193,11 @@ public class Board {
         return new Board(boardCopy, this.g + 1, this);
     }
 
+    /**
+     * Given a direction, check if moving in that direction is possible
+     * @param direction
+     * @return whether or not the move is legal
+     */
     public boolean isLegalMove(String direction) {
         boolean isLegal;
         findBlank();
@@ -196,6 +217,9 @@ public class Board {
         return isLegal;
     }
 
+    /**
+     * Print a board to standard output
+     */
     public void printBoard() {
         for(int i = 0; i < 3; i++) {
             for(int j = 0 ; j < 3; j++) {

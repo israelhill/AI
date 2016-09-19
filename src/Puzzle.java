@@ -27,24 +27,31 @@ public class Puzzle {
         board = new Board(state);
     }
 
-    public Board solvePuzzle() {
+    /**
+     * Solve the puzzle using the A* algorithm
+     * @return solved puzzle board
+     */
+    public Board solvePuzzleAStar() {
         board.setG(0);
         board.setH(board.goalOffset());
         queue.offer(board);
-        Board finalBoard = null;
+        Board solutionBoard = null;
 
         while(!queue.isEmpty()) {
             Board current = queue.poll();
 
             if(current.goalOffset() == 0) {
-                finalBoard = current;
+                solutionBoard = current;
                 break;
             }
 
+            // get all the next possible board positions
             ArrayList<Board> children = current.getValidChildren();
             for(Board child : children) {
                 boolean addToQueue = true;
 
+                // if this board position has benn encountered already with a lower cost estimate,
+                // skip this board
                 if(queue.contains(child)) {
                     Board duplicateBoard = queue.remove();
                     if(duplicateBoard.getF() < child.getF()) {
@@ -59,15 +66,22 @@ public class Puzzle {
                     }
                 }
 
+                // if this is our first time encountering this board position,
+                // or this board has a lower cost estimate, add it to the queue
                 if(addToQueue) {
                     queue.offer(child);
                 }
             }
             closed.put(current, current);
         }
-        return finalBoard;
+        return solutionBoard;
     }
 
+    /**
+     * Read commands from a text file
+     * @param fileName
+     * @throws IOException
+     */
     public static void readCommandsFromFile(String fileName) throws IOException {
         Stream<String> stream = Files.lines(Paths.get(fileName));
             stream.forEach(System.out::println);
@@ -75,7 +89,7 @@ public class Puzzle {
 
     public static void main(String[] args) {
 //        Puzzle p = new Puzzle("312 6b4 785");
-//        Board solution = p.solvePuzzle();
+//        Board solution = p.solvePuzzleAStar();
 //        solution.printBoard();
 //        System.out.println();
 //
