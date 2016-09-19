@@ -1,0 +1,3 @@
+doSomething n
+nextCommand hello
+thirdCommand stuff

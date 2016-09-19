@@ -1,6 +1,11 @@
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.PriorityQueue;
+import java.util.stream.Stream;
 
 public class Puzzle {
     private Board board;
@@ -63,16 +68,28 @@ public class Puzzle {
     }
 
     public static void main(String[] args) {
-        Puzzle p = new Puzzle("312 6b4 785");
-        Board solution = p.solvePuzzle();
-        solution.printBoard();
-        System.out.println();
+//        Puzzle p = new Puzzle("312 6b4 785");
+//        Board solution = p.solvePuzzle();
+//        solution.printBoard();
+//        System.out.println();
+//
+//        Board backtrace = solution;
+//        while(backtrace.getParent() != null) {
+//            backtrace.getParent().printBoard();
+//            System.out.println();
+//            backtrace = backtrace.getParent();
+//        }
 
-        Board backtrace = solution;
-        while(backtrace.getParent() != null) {
-            backtrace.getParent().printBoard();
-            System.out.println();
-            backtrace = backtrace.getParent();
+        if(args[0].equals("readFile")) {
+            String fileName = args[1];
+            try (Stream<String> stream = Files.lines(Paths.get(fileName))) {
+                stream.forEach(System.out::println);
+            }
+            catch(Exception e) {
+                e.printStackTrace();
+            }
+
+            
         }
     }
 }
