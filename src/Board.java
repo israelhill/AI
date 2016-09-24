@@ -10,16 +10,19 @@ public class Board {
     private int blankRow;
     private int blankColumn;
     private final char[][] GOAL = {{'b', '1', '2'}, {'3', '4', '5'}, {'6', '7', '8'}};
+    private String heuristicType;
 
     public Board(String state) {
         this.boardState = new char[3][3];
         setState(state);
+        heuristicType = Puzzle.HEURISTIC_TYPE;
     }
 
     public Board(char[][] state, int g, Board parent) {
         this.boardState = state;
+        this.heuristicType = Puzzle.HEURISTIC_TYPE;
         this.g = g;
-        this.h = goalOffset();
+        this.h = computeHeuristic();
         setF(g, h);
         this.parent = parent;
     }
@@ -46,6 +49,15 @@ public class Board {
         return this.parent;
     }
 
+    public int computeHeuristic() {
+        if(heuristicType.equals("h1")) {
+            return this.goalOffset();
+        }
+        else {
+            return this.computeSumOfManhattan();
+        }
+    }
+
     /**
      * Heuristic h1: compute the number of tiles in incorrect positions
      * @return the number of tiles out of place
@@ -60,6 +72,66 @@ public class Board {
             }
         }
         return offset;
+    }
+
+    /**
+     * Heuristic h2: compute the Manhattan distance between two points
+     * @return manhattan distance
+     */
+    public int computeSumOfManhattan() {
+        int totalSum = 0;
+        for(int i = 0; i < 3; i++) {
+            for(int j = 0; j < 3; j++) {
+                char currentChar = boardState[i][j];
+                totalSum += computeManhattanDistance(currentChar, i, j);
+            }
+        }
+        return totalSum;
+    }
+
+    /**
+     * Compute the sum of all manhattan distances
+     * @param num
+     * @param x1
+     * @param y1
+     * @return
+     */
+    public int computeManhattanDistance(char num, int x1, int y1) {
+        int x0 = getX(num);
+        int y0 = getY(num);
+        return Math.abs(x1 - x0) + Math.abs(y1 - y0);
+    }
+
+    /**
+     * get the X-Coordinate for a given tile
+     * @param num
+     * @return
+     */
+    public int getX(char num) {
+        for(int i = 0; i < 3; i++) {
+            for(int j = 0 ; j < 3; j++) {
+                if(GOAL[i][j] == num) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * get the Y-Coordinate for a given tile
+     * @param num
+     * @return
+     */
+    public int getY(char num) {
+        for(int i = 0; i < 3; i++) {
+            for(int j = 0 ; j < 3; j++) {
+                if(GOAL[i][j] == num) {
+                    return j;
+                }
+            }
+        }
+        return -1;
     }
 
     /**

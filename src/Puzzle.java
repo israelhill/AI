@@ -7,7 +7,8 @@ import java.util.PriorityQueue;
 import java.util.stream.Stream;
 
 public class Puzzle {
-    private Board board;
+    public static String HEURISTIC_TYPE;
+
     private static PriorityQueue<Board> queue = new PriorityQueue<>((a, b) -> {
         if(a.getF() == b.getF()) {
             return 0;
@@ -21,24 +22,23 @@ public class Puzzle {
     });
     private static HashMap<Board, Board> closed = new HashMap<>();
 
-    public Puzzle(String state) {
-        board = new Board(state);
-    }
-
     /**
      * Solve the puzzle using the A* algorithm
      * @return solved puzzle board
      */
-    public Board solvePuzzleAStar() {
+    public Board solvePuzzleAStar(String heuristicType, String boardState) {
+        setHeuristicType(heuristicType);
+        Board board = new Board(boardState);
         board.setG(0);
-        board.setH(board.goalOffset());
+        board.setH(board.computeSumOfManhattan());
+
         queue.offer(board);
         Board solutionBoard = null;
 
         while(!queue.isEmpty()) {
             Board current = queue.poll();
 
-            if(current.goalOffset() == 0) {
+            if(current.computeHeuristic() == 0) {
                 solutionBoard = current;
                 break;
             }
@@ -85,27 +85,31 @@ public class Puzzle {
             stream.forEach(System.out::println);
     }
 
-    public static void main(String[] args) {
-//        Puzzle p = new Puzzle("312 6b4 785");
-//        Board solution = p.solvePuzzleAStar();
-//        solution.printBoard();
-//        System.out.println();
-//
-//        Board backtrace = solution;
-//        while(backtrace.getParent() != null) {
-//            backtrace.getParent().printBoard();
-//            System.out.println();
-//            backtrace = backtrace.getParent();
-//        }
+    public static void setHeuristicType(String heuristicType) {
+        HEURISTIC_TYPE = heuristicType;
+    }
 
-        if(args[0].equals("readFile")) {
-            String fileName = args[1];
-            try {
-                readCommandsFromFile(fileName);
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
+    public static void main(String[] args) {
+        Puzzle p = new Puzzle();
+        Board solution = p.solvePuzzleAStar("h2", "724 5b6 831");
+        solution.printBoard();
+        System.out.println();
+
+        Board backtrace = solution;
+        while(backtrace.getParent() != null) {
+            backtrace.getParent().printBoard();
+            System.out.println();
+            backtrace = backtrace.getParent();
         }
+
+//        if(args[0].equals("readFile")) {
+//            String fileName = args[1];
+//            try {
+//                readCommandsFromFile(fileName);
+//            }
+//            catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
     }
 }
