@@ -235,7 +235,13 @@ public class Board {
         char temp = boardCopy[blankRow - 1][blankColumn];
         boardCopy[blankRow - 1][blankColumn] = boardCopy[blankRow][blankColumn];
         boardCopy[blankRow][blankColumn] = temp;
-        return new Board(boardCopy, this.g + 1, this);
+
+        if(Puzzle.ALGORITHM_TYPE.equals("beam")) {
+            return new Board(boardCopy, 0, this);
+        }
+        else {
+            return new Board(boardCopy, this.g + 1, this);
+        }
     }
 
     public Board moveDown() {
@@ -244,7 +250,13 @@ public class Board {
         char temp = boardCopy[blankRow + 1][blankColumn];
         boardCopy[blankRow + 1][blankColumn] = boardCopy[blankRow][blankColumn];
         boardCopy[blankRow][blankColumn] = temp;
-        return new Board(boardCopy, this.g + 1, this);
+
+        if(Puzzle.ALGORITHM_TYPE.equals("beam")) {
+            return new Board(boardCopy, 0, this);
+        }
+        else {
+            return new Board(boardCopy, this.g + 1, this);
+        }
     }
 
     public Board moveLeft() {
@@ -253,7 +265,13 @@ public class Board {
         char temp = boardCopy[blankRow][blankColumn - 1];
         boardCopy[blankRow][blankColumn - 1] = boardCopy[blankRow][blankColumn];
         boardCopy[blankRow][blankColumn] = temp;
-        return new Board(boardCopy, this.g + 1, this);
+
+        if(Puzzle.ALGORITHM_TYPE.equals("beam")) {
+            return new Board(boardCopy, 0, this);
+        }
+        else {
+            return new Board(boardCopy, this.g + 1, this);
+        }
     }
 
     public Board moveRight() {
@@ -262,7 +280,13 @@ public class Board {
         char temp = boardCopy[blankRow][blankColumn + 1];
         boardCopy[blankRow][blankColumn  + 1] = boardCopy[blankRow][blankColumn];
         boardCopy[blankRow][blankColumn] = temp;
-        return new Board(boardCopy, this.g + 1, this);
+
+        if(Puzzle.ALGORITHM_TYPE.equals("beam")) {
+            return new Board(boardCopy, 0, this);
+        }
+        else {
+            return new Board(boardCopy, this.g + 1, this);
+        }
     }
 
     /**
