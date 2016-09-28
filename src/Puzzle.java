@@ -30,6 +30,7 @@ public class Puzzle {
      */
     public Board solvePuzzleAStar(String heuristicType, String boardState) {
         queue.clear();
+        setAlgorithmType("astar");
         setHeuristicType(heuristicType);
         Board board = new Board(boardState);
         board.setG(0);
@@ -160,10 +161,12 @@ public class Puzzle {
         return directions[randomIndex];
     }
 
+
+
     public static void main(String[] args) {
         Puzzle p = new Puzzle();
-//        Board solution = p.solvePuzzleAStar("h2", "724 5b6 831");
-        Board solution = p.beamSearch(500, "724 5b6 831");
+        Board solution = p.solvePuzzleAStar("h2", "b12 643 785");
+//        Board solution = p.beamSearch(500, "b12 643 785");
         solution.printBoard();
         System.out.println();
 
