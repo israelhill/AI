@@ -11,20 +11,40 @@ public class Board {
     private int blankColumn;
     private final char[][] GOAL = {{'b', '1', '2'}, {'3', '4', '5'}, {'6', '7', '8'}};
     private String heuristicType;
+    private String algorithmType;
 
-    public Board(String state) {
+    public Board(char[][] state) {
+        this.boardState = state;
+    }
+
+    public Board() {
         this.boardState = new char[3][3];
-        setState(state);
-        heuristicType = Puzzle.HEURISTIC_TYPE;
     }
 
     public Board(char[][] state, int g, Board parent) {
         this.boardState = state;
-        this.heuristicType = Puzzle.HEURISTIC_TYPE;
+        setHeuristicType(parent.getHeuristicType());
+        setAlgorithmType(parent.getAlgorithmType());
         this.g = g;
         this.h = computeHeuristic();
         setF(g, h);
         this.parent = parent;
+    }
+
+    public void setHeuristicType(String heuristicType) {
+        this.heuristicType = heuristicType;
+    }
+
+    public String getHeuristicType() {
+        return this.heuristicType;
+    }
+
+    public void setAlgorithmType(String algorithmType) {
+        this.algorithmType = algorithmType;
+    }
+
+    public String getAlgorithmType() {
+        return this.algorithmType;
     }
 
     @Override
@@ -229,6 +249,33 @@ public class Board {
         return retVal;
     }
 
+    public Board move(String direction) {
+        Board retVal = null;
+        switch(direction) {
+            case "up": {
+                retVal = moveUp();
+                break;
+            }
+            case "down": {
+                retVal = moveDown();
+                break;
+            }
+            case "left": {
+                retVal = moveLeft();
+                break;
+            }
+            case "right": {
+                retVal = moveRight();
+                break;
+            }
+            default: {
+                System.out.println("Direction not recognized.");
+                System.exit(0);
+            }
+        }
+        return retVal;
+    }
+
     public Board moveUp() {
         findBlank();
         char[][] boardCopy = copyArray(boardState);
@@ -236,7 +283,10 @@ public class Board {
         boardCopy[blankRow - 1][blankColumn] = boardCopy[blankRow][blankColumn];
         boardCopy[blankRow][blankColumn] = temp;
 
-        if(Puzzle.ALGORITHM_TYPE.equals("beam")) {
+        if(algorithmType == null) {
+            return new Board(boardCopy);
+        }
+        else if(algorithmType.equals("beam")) {
             return new Board(boardCopy, 0, this);
         }
         else {
@@ -251,7 +301,10 @@ public class Board {
         boardCopy[blankRow + 1][blankColumn] = boardCopy[blankRow][blankColumn];
         boardCopy[blankRow][blankColumn] = temp;
 
-        if(Puzzle.ALGORITHM_TYPE.equals("beam")) {
+        if(algorithmType == null) {
+            return new Board(boardCopy);
+        }
+        else if(algorithmType.equals("beam")) {
             return new Board(boardCopy, 0, this);
         }
         else {
@@ -266,7 +319,10 @@ public class Board {
         boardCopy[blankRow][blankColumn - 1] = boardCopy[blankRow][blankColumn];
         boardCopy[blankRow][blankColumn] = temp;
 
-        if(Puzzle.ALGORITHM_TYPE.equals("beam")) {
+        if(algorithmType == null) {
+            return new Board(boardCopy);
+        }
+        else if(algorithmType.equals("beam")) {
             return new Board(boardCopy, 0, this);
         }
         else {
@@ -281,7 +337,10 @@ public class Board {
         boardCopy[blankRow][blankColumn  + 1] = boardCopy[blankRow][blankColumn];
         boardCopy[blankRow][blankColumn] = temp;
 
-        if(Puzzle.ALGORITHM_TYPE.equals("beam")) {
+        if(algorithmType == null) {
+            return new Board(boardCopy);
+        }
+        else if(algorithmType.equals("beam")) {
             return new Board(boardCopy, 0, this);
         }
         else {
@@ -319,12 +378,7 @@ public class Board {
     public void printBoard() {
         for(int i = 0; i < 3; i++) {
             for(int j = 0 ; j < 3; j++) {
-                if(boardState[i][j] == 'b') {
-                    System.out.print("_ ");
-                }
-                else {
-                    System.out.print(boardState[i][j] + " ");
-                }
+                System.out.print(boardState[i][j] + " ");
             }
             System.out.println();
         }

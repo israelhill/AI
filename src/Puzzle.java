@@ -4,12 +4,15 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.PriorityQueue;
+import java.util.Scanner;
 import java.util.stream.Stream;
 
 public class Puzzle {
     public static String HEURISTIC_TYPE;
     public static String ALGORITHM_TYPE;
     private Board foundGoal = null;
+    private static Board interactiveBoard;
+    private int maxNodes = Integer.MAX_VALUE;
 
     private static PriorityQueue<Board> queue = new PriorityQueue<>((a, b) -> {
         if(a.getF() == b.getF()) {
@@ -24,23 +27,39 @@ public class Puzzle {
     });
     private static HashMap<Board, Board> closed = new HashMap<>();
 
+    public void setMaxNodes(int num) {
+        this.maxNodes = num;
+    }
+
+    public int getMaxNodes() {
+        return this.maxNodes;
+    }
+
     /**
      * Solve the puzzle using the A* algorithm
      * @return solved puzzle board
      */
-    public Board solvePuzzleAStar(String heuristicType, String boardState) {
+    public Board solvePuzzleAStar(String heuristicType) {
         queue.clear();
         setAlgorithmType("astar");
         setHeuristicType(heuristicType);
-        Board board = new Board(boardState);
+        Board board = getInteractiveBoard();
         board.setG(0);
         board.setH(board.computeSumOfManhattan());
 
         queue.offer(board);
         Board solutionBoard = null;
+        int nodesVisited = 0;
 
         while(!queue.isEmpty()) {
             Board current = queue.poll();
+            nodesVisited++;
+
+            if(nodesVisited > maxNodes) {
+                System.out.println("ERROR: Algorithm has considered " + Integer.toString(nodesVisited) + " this exceeds" +
+                        " the amount specified in maxNodes.");
+                System.exit(0);
+            }
 
             if(current.computeHeuristic() == 0) {
                 solutionBoard = current;
@@ -79,14 +98,16 @@ public class Puzzle {
         return solutionBoard;
     }
 
-    public Board beamSearch(int k, String boardState) {
+    public Board beamSearch(int k) {
         setAlgorithmType("beam");
         setHeuristicType("h2");
         queue.clear();
+        int nodesVisited = 0;
         Board goal = null;
         ArrayList<Board> bestBoards;
-        Board board = new Board(boardState);
+        Board board = getInteractiveBoard();
         ArrayList<Board> children = board.getValidChildren();
+
 
         if(children.size() < k) {
             bestBoards = children;
@@ -95,13 +116,23 @@ public class Puzzle {
             bestBoards = getKBestBoards(k, queue, children);
         }
 
+        nodesVisited += bestBoards.size();
+
+
         while(!bestBoards.isEmpty()) {
+            if(nodesVisited > maxNodes) {
+                System.out.println("ERROR: Algorithm has considered " + Integer.toString(nodesVisited) + " this exceeds" +
+                        " the amount specified in maxNodes.");
+                System.exit(0);
+            }
+
             ArrayList<Board> allSuccessors = generateAllSuccessors(bestBoards);
             if(foundGoal != null) {
                 goal = foundGoal;
                 break;
             }
             bestBoards = getKBestBoards(k, queue, allSuccessors);
+            nodesVisited += bestBoards.size();
         }
 
         return goal;
@@ -161,21 +192,93 @@ public class Puzzle {
         return directions[randomIndex];
     }
 
+    public static void printSolution(Board solvedBoard) {
+        while(solvedBoard.getParent() != null) {
+            solvedBoard.getParent().printBoard();
+            System.out.println();
+            solvedBoard = solvedBoard.getParent();
+        }
+    }
+
+    public void setBoardState(String state) {
+        interactiveBoard.setState(state);
+    }
+
+    public static Board getInteractiveBoard() {
+        return interactiveBoard;
+    }
+
+    public static void checkForNullBoard() {
+        if(getInteractiveBoard() == null) {
+            System.out.println("You have not set the board state yet.");
+            System.exit(0);
+        }
+    }
+
+
 
 
     public static void main(String[] args) {
         Puzzle p = new Puzzle();
-        Board solution = p.solvePuzzleAStar("h2", "b12 643 785");
-//        Board solution = p.beamSearch(500, "b12 643 785");
-        solution.printBoard();
-        System.out.println();
+        Board solution;
+        while(true) {
+            Scanner s = new Scanner(System.in);
+            String inputString = s.nextLine();
+            String[] inputs = inputString.split(" ");
+            String command = inputs[0];
 
-        Board backtrace = solution;
-        while(backtrace.getParent() != null) {
-            backtrace.getParent().printBoard();
-            System.out.println();
-            backtrace = backtrace.getParent();
+            switch(command) {
+                case "solve": {
+                    String algorithm = inputs[1];
+                    String arg = inputs[2];
+                    if(algorithm.equals("beam")) {
+                        int k = Integer.parseInt(arg);
+                        checkForNullBoard();
+                        System.out.println("Solving puzzle using Beam search algorithm....");
+                        solution = p.beamSearch(k);
+                    }
+                    else if(algorithm.equals("A-star")){
+                        String heuristic = arg;
+                        checkForNullBoard();
+                        System.out.println("Solving puzzle using A* algorithm....");
+                        solution = p.solvePuzzleAStar(heuristic);
+                    }
+                    else {
+                        System.out.println("Search algorithm not recognized. Check spelling.");
+                        System.exit(0);
+                    }
+                }
+                case "setState": {
+                    String state = inputs[1];
+                    if(state.length() != 11) {
+                        System.out.println("Board state is invalid. Check state again.");
+                        System.exit(0);
+                    }
+                    p.setBoardState(state);
+                }
+                case "printState": {
+                    checkForNullBoard();
+                    interactiveBoard.printBoard();
+                }
+                case "move": {
+                    String direction = inputs[1];
+                    checkForNullBoard();
+                    interactiveBoard = interactiveBoard.move(direction);
+                }
+            }
         }
+
+
+
+
+//        Board solution = p.solvePuzzleAStar("h2", "b12 643 785");
+//        Board solution = p.beamSearch(500, "b12 643 785");
+//        solution.printBoard();
+//        System.out.println();
+//
+//        Board backtrace = solution;
+//        printSolution(backtrace);
+
 
 //        if(args[0].equals("readFile")) {
 //            String fileName = args[1];
