@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<project name="8puzzle" default="compile" basedir=".">
+
+    <property name="src" value="./src" />
+    <property name="classes" value="./build/classes" />
+    <property name="input" value="./file.txt"/>
+
+
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+
+    <target name="run" depends="compile, jar">
+        <java jar="build/jar/Puzzle.jar" fork="true"/>
+    </target>
+
+    <target name="jar" depends="compile">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/Puzzle.jar" basedir="build/classes">
+            <manifest>
+                <attribute name="Main-Class" value="Puzzle"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="./src" destdir="build/classes"/>
+    </target>
+
+    <target name="build">
+        <echo message="Building project..."/>
+        <antcall target="compile"/>
+        <antcall target="run"/>
+        <antcall target="clean"/>
+    </target>
+
+</project>

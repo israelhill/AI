@@ -1,15 +1,10 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.PriorityQueue;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class Puzzle {
-    public static String HEURISTIC_TYPE;
-    public static String ALGORITHM_TYPE;
     private Board foundGoal = null;
     private static Board interactiveBoard;
     private int maxNodes = Integer.MAX_VALUE;
@@ -27,6 +22,10 @@ public class Puzzle {
     });
     private static HashMap<Board, Board> closed = new HashMap<>();
 
+    public Puzzle() {
+        interactiveBoard = new Board();
+    }
+
     public void setMaxNodes(int num) {
         this.maxNodes = num;
     }
@@ -41,8 +40,8 @@ public class Puzzle {
      */
     public Board solvePuzzleAStar(String heuristicType) {
         queue.clear();
-        setAlgorithmType("astar");
-        setHeuristicType(heuristicType);
+        interactiveBoard.setAlgorithmType("astar");
+        interactiveBoard.setHeuristicType(heuristicType);
         Board board = getInteractiveBoard();
         board.setG(0);
         board.setH(board.computeSumOfManhattan());
@@ -99,8 +98,8 @@ public class Puzzle {
     }
 
     public Board beamSearch(int k) {
-        setAlgorithmType("beam");
-        setHeuristicType("h2");
+        interactiveBoard.setAlgorithmType("beam");
+        interactiveBoard.setHeuristicType("h2");
         queue.clear();
         int nodesVisited = 0;
         Board goal = null;
@@ -176,14 +175,6 @@ public class Puzzle {
             stream.forEach(System.out::println);
     }
 
-    public static void setHeuristicType(String heuristicType) {
-        HEURISTIC_TYPE = heuristicType;
-    }
-
-    public static void setAlgorithmType(String algorithmType) {
-        ALGORITHM_TYPE = algorithmType;
-    }
-
     public static String generateRandomDirection() {
         String[] directions = {"left", "right", "up", "down"};
         int min = 0;
@@ -193,10 +184,18 @@ public class Puzzle {
     }
 
     public static void printSolution(Board solvedBoard) {
+        ArrayList<String> directions = new ArrayList<>();
+
         while(solvedBoard.getParent() != null) {
-            solvedBoard.getParent().printBoard();
-            System.out.println();
+            directions.add(solvedBoard.getParent().getDirectionMoved());
             solvedBoard = solvedBoard.getParent();
+        }
+
+        Collections.reverse(directions);
+        int numMoves = directions.size();
+        System.out.println("Number of moves made to solve: " + String.valueOf(numMoves));
+        for(String d : directions) {
+            System.out.println(d);
         }
     }
 
@@ -221,49 +220,64 @@ public class Puzzle {
     public static void main(String[] args) {
         Puzzle p = new Puzzle();
         Board solution;
+        Scanner s = new Scanner(System.in);
         while(true) {
-            Scanner s = new Scanner(System.in);
+            System.out.println("Enter a command:");
             String inputString = s.nextLine();
             String[] inputs = inputString.split(" ");
             String command = inputs[0];
 
             switch(command) {
-                case "solve": {
+                case "solve":
                     String algorithm = inputs[1];
                     String arg = inputs[2];
-                    if(algorithm.equals("beam")) {
-                        int k = Integer.parseInt(arg);
-                        checkForNullBoard();
-                        System.out.println("Solving puzzle using Beam search algorithm....");
-                        solution = p.beamSearch(k);
+                    switch (algorithm) {
+                        case "beam":
+                            int k = Integer.parseInt(arg);
+                            checkForNullBoard();
+                            System.out.println("Solving puzzle using Beam search algorithm....");
+                            solution = p.beamSearch(k);
+                            printSolution(solution);
+                            break;
+                        case "A-star":
+                            String heuristic = arg;
+                            checkForNullBoard();
+                            System.out.println("Solving puzzle using A* algorithm....");
+                            solution = p.solvePuzzleAStar(heuristic);
+                            break;
+                        default:
+                            System.out.println("Search algorithm not recognized. Check spelling.");
+                            System.exit(0);
+                            break;
                     }
-                    else if(algorithm.equals("A-star")){
-                        String heuristic = arg;
-                        checkForNullBoard();
-                        System.out.println("Solving puzzle using A* algorithm....");
-                        solution = p.solvePuzzleAStar(heuristic);
-                    }
-                    else {
-                        System.out.println("Search algorithm not recognized. Check spelling.");
-                        System.exit(0);
-                    }
-                }
+                    break;
                 case "setState": {
-                    String state = inputs[1];
+                    String state = inputs[1] + " " + inputs[2] + " " + inputs[3];
                     if(state.length() != 11) {
                         System.out.println("Board state is invalid. Check state again.");
                         System.exit(0);
                     }
                     p.setBoardState(state);
+                    break;
                 }
                 case "printState": {
                     checkForNullBoard();
                     interactiveBoard.printBoard();
+                    break;
                 }
                 case "move": {
                     String direction = inputs[1];
                     checkForNullBoard();
                     interactiveBoard = interactiveBoard.move(direction);
+                    break;
+                }
+                case "exit": {
+                    System.exit(1);
+                    break;
+                }
+                default: {
+                    System.out.println("Command not recognized.");
+                    break;
                 }
             }
         }

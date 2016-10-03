@@ -7,6 +7,7 @@ public class Board {
     private int f;
     private char[][] boardState;
     private Board parent;
+    private String directionMoved;
     private int blankRow;
     private int blankColumn;
     private final char[][] GOAL = {{'b', '1', '2'}, {'3', '4', '5'}, {'6', '7', '8'}};
@@ -29,6 +30,14 @@ public class Board {
         this.h = computeHeuristic();
         setF(g, h);
         this.parent = parent;
+    }
+
+    public void setDirectionMoved(String direction) {
+        this.directionMoved = direction;
+    }
+
+    public String getDirectionMoved() {
+        return this.directionMoved;
     }
 
     public void setHeuristicType(String heuristicType) {
@@ -287,10 +296,14 @@ public class Board {
             return new Board(boardCopy);
         }
         else if(algorithmType.equals("beam")) {
-            return new Board(boardCopy, 0, this);
+            Board b = new Board(boardCopy, 0, this);
+            b.setDirectionMoved("up");
+            return b;
         }
         else {
-            return new Board(boardCopy, this.g + 1, this);
+            Board b = new Board(boardCopy, this.g + 1, this);
+            b.setDirectionMoved("up");
+            return b;
         }
     }
 
@@ -305,10 +318,14 @@ public class Board {
             return new Board(boardCopy);
         }
         else if(algorithmType.equals("beam")) {
-            return new Board(boardCopy, 0, this);
+            Board b = new Board(boardCopy, 0, this);
+            b.setDirectionMoved("down");
+            return b;
         }
         else {
-            return new Board(boardCopy, this.g + 1, this);
+            Board b = new Board(boardCopy, this.g + 1, this);
+            b.setDirectionMoved("down");
+            return b;
         }
     }
 
@@ -323,10 +340,14 @@ public class Board {
             return new Board(boardCopy);
         }
         else if(algorithmType.equals("beam")) {
-            return new Board(boardCopy, 0, this);
+            Board b = new Board(boardCopy, 0, this);
+            b.setDirectionMoved("left");
+            return b;
         }
         else {
-            return new Board(boardCopy, this.g + 1, this);
+            Board b = new Board(boardCopy, this.g + 1, this);
+            b.setDirectionMoved("left");
+            return b;
         }
     }
 
@@ -341,10 +362,14 @@ public class Board {
             return new Board(boardCopy);
         }
         else if(algorithmType.equals("beam")) {
-            return new Board(boardCopy, 0, this);
+            Board b = new Board(boardCopy, 0, this);
+            b.setDirectionMoved("right");
+            return b;
         }
         else {
-            return new Board(boardCopy, this.g + 1, this);
+            Board b = new Board(boardCopy, this.g + 1, this);
+            b.setDirectionMoved("right");
+            return b;
         }
     }
 
