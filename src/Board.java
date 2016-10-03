@@ -260,27 +260,35 @@ public class Board {
 
     public Board move(String direction) {
         Board retVal = null;
-        switch(direction) {
-            case "up": {
-                retVal = moveUp();
-                break;
+        findBlank();
+        if(isLegalMove(direction)) {
+            switch(direction) {
+                case "up": {
+                    retVal = moveUp();
+                    break;
+                }
+                case "down": {
+                    retVal = moveDown();
+                    break;
+                }
+                case "left": {
+                    retVal = moveLeft();
+                    break;
+                }
+                case "right": {
+                    retVal = moveRight();
+                    break;
+                }
+                default: {
+                    System.out.println("Direction not recognized.");
+                    System.exit(0);
+                }
             }
-            case "down": {
-                retVal = moveDown();
-                break;
-            }
-            case "left": {
-                retVal = moveLeft();
-                break;
-            }
-            case "right": {
-                retVal = moveRight();
-                break;
-            }
-            default: {
-                System.out.println("Direction not recognized.");
-                System.exit(0);
-            }
+
+        }
+        else {
+            System.out.println("This is not a valid move!");
+            retVal = this;
         }
         return retVal;
     }

@@ -186,17 +186,31 @@ public class Puzzle {
     public static void printSolution(Board solvedBoard) {
         ArrayList<String> directions = new ArrayList<>();
 
-        while(solvedBoard.getParent() != null) {
-            directions.add(solvedBoard.getParent().getDirectionMoved());
+        while(solvedBoard != null) {
+            if(solvedBoard.getParent() != null) {
+                directions.add(solvedBoard.getDirectionMoved());
+            }
             solvedBoard = solvedBoard.getParent();
         }
 
         Collections.reverse(directions);
         int numMoves = directions.size();
+        System.out.println();
         System.out.println("Number of moves made to solve: " + String.valueOf(numMoves));
         for(String d : directions) {
             System.out.println(d);
         }
+
+
+        // print the board states
+
+//        System.out.println();
+//        System.out.println();
+//        while(solvedBoard != null) {
+//            solvedBoard.printBoard();
+//            System.out.println();
+//            solvedBoard = solvedBoard.getParent();
+//        }
     }
 
     public void setBoardState(String state) {
@@ -244,6 +258,7 @@ public class Puzzle {
                             checkForNullBoard();
                             System.out.println("Solving puzzle using A* algorithm....");
                             solution = p.solvePuzzleAStar(heuristic);
+                            printSolution(solution);
                             break;
                         default:
                             System.out.println("Search algorithm not recognized. Check spelling.");
