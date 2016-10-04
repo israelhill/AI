@@ -10,9 +10,9 @@ public class Board {
     private String directionMoved;
     private int blankRow;
     private int blankColumn;
-    private final char[][] GOAL = {{'b', '1', '2'}, {'3', '4', '5'}, {'6', '7', '8'}};
     private String heuristicType;
     private String algorithmType;
+    public static final char[][] GOAL = {{'b', '1', '2'}, {'3', '4', '5'}, {'6', '7', '8'}};
 
     public Board(char[][] state) {
         this.boardState = state;
@@ -54,6 +54,12 @@ public class Board {
 
     public String getAlgorithmType() {
         return this.algorithmType;
+    }
+
+    public void clearData() {
+        this.f = 0;
+        this.h = 0;
+        this.g = 0;
     }
 
     @Override
