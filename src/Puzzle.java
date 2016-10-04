@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -84,9 +85,7 @@ public class Puzzle {
             Board current = queue.poll();
 
             if(nodesVisited > getMaxNodes()) {
-//                System.out.println("ERROR: Algorithm has considered " + Integer.toString(nodesVisited) + " this exceeds" +
-//                        " the amount specified in maxNodes.");
-//                System.exit(0);
+                System.out.println("Reach max nodes limit");
                 return null;
             }
 
@@ -100,17 +99,6 @@ public class Puzzle {
             ArrayList<Board> children = current.getValidChildren();
             for(Board child : children) {
                 boolean addToQueue = true;
-
-//                // if this board position has benn encountered already with a lower cost estimate,
-//                // skip this board
-//                if(queue.contains(child)) {
-//                    Board duplicateBoard = queue.remove();
-//                    if(duplicateBoard.getF() < child.getF()) {
-//                        queue.offer(duplicateBoard);
-//                        addToQueue = false;
-//                    }
-//                }
-
 
                 if(closed.containsKey(child)) {
                     Board duplicateBoard = closed.get(child);
@@ -127,14 +115,13 @@ public class Puzzle {
             }
             closed.put(current, current);
         }
-//        System.out.print("Nodes considered " + String.valueOf(nodesVisited));
         return solutionBoard;
     }
 
     public Board beamSearch(int k) {
         getInteractiveBoard().setAlgorithmType("beam");
         getInteractiveBoard().setHeuristicType("h2");
-//        getInteractiveBoard().printBoard();
+        setFoundGoal(null);
         queue.clear();
         Board goal = null;
         ArrayList<Board> bestBoards;
@@ -159,7 +146,6 @@ public class Puzzle {
                 break;
             }
             bestBoards = getKBestBoards(k, queue, allSuccessors);
-//            System.out.println("Size of best board: "  + String.valueOf(bestBoards.size()));
         }
 
         return goal;
@@ -183,11 +169,11 @@ public class Puzzle {
     public ArrayList<Board> generateAllSuccessors(ArrayList<Board> oldBest) {
         int nodesVisited = 0;
         ArrayList<Board> allBoards = new ArrayList<>();
+
         for(Board b : oldBest) {
+
             if(nodesVisited > getMaxNodes()) {
-//                System.out.println("ERROR: Algorithm has considered " + Integer.toString(nodesVisited) + " this exceeds" +
-//                        " the amount specified in maxNodes.");
-//                System.exit(0);
+                System.out.println("Reach max nodes limit");
                 setExpExceedMax(true);
             }
 
@@ -212,12 +198,12 @@ public class Puzzle {
             stream.forEach(System.out::println);
     }
 
-    public void generateNRandomMoves(int numMoves) {
+    public void generateNRandomMoves(int numMoves, int seed) {
         String[] directions = {"left", "right", "up", "down"};
         int count = numMoves;
         int max = 4;
         int randomIndex;
-        randomNumGen.setSeed(numMoves);
+        randomNumGen.setSeed(seed);
 
         while (count > 0) {
             randomIndex = randomNumGen.nextInt(max);
@@ -247,17 +233,6 @@ public class Puzzle {
         for(String d : directions) {
             System.out.println(d);
         }
-
-
-        // print the board states
-
-//        System.out.println();
-//        System.out.println();
-//        while(solvedBoard != null) {
-//            solvedBoard.printBoard();
-//            System.out.println();
-//            solvedBoard = solvedBoard.getParent();
-//        }
     }
 
     public void setBoardState(String state) {
@@ -277,7 +252,7 @@ public class Puzzle {
 
     public ArrayList<Double> expAstarH1() {
         double numSolved = 0;
-        double NUM_MOVES = 50;
+        double NUM_MOVES = 100;
         ArrayList<Double> fractions = new ArrayList<>();
 
         for(int maxNodes = 1; maxNodes < 1050; maxNodes = maxNodes * 2) {
@@ -285,7 +260,7 @@ public class Puzzle {
                 setMaxNodes(maxNodes);
                 setInteractiveBoard(new Board(Board.GOAL));
                 getInteractiveBoard().clearData();
-                generateNRandomMoves(numMoves);
+                generateNRandomMoves(numMoves, numMoves);
                 Board s = solvePuzzleAStar("h1");
                 if(s != null) {
                     numSolved++;
@@ -300,7 +275,7 @@ public class Puzzle {
 
     public ArrayList<Double> expAstarH2() {
         double numSolved = 0;
-        double NUM_MOVES = 50;
+        double NUM_MOVES = 100;
         ArrayList<Double> fractions = new ArrayList<>();
 
         for(int maxNodes = 1; maxNodes < 1050; maxNodes = maxNodes * 2) {
@@ -308,7 +283,7 @@ public class Puzzle {
                 setMaxNodes(maxNodes);
                 setInteractiveBoard(new Board(Board.GOAL));
                 getInteractiveBoard().clearData();
-                generateNRandomMoves(numMoves);
+                generateNRandomMoves(numMoves, numMoves);
                 Board s = solvePuzzleAStar("h2");
                 if(s != null) {
                     numSolved++;
@@ -333,7 +308,7 @@ public class Puzzle {
                 setInteractiveBoard(new Board(Board.GOAL));
 
                 setFoundGoal(null);
-                generateNRandomMoves(numMoves);
+                generateNRandomMoves(numMoves, numMoves);
                 Board s = beamSearch(10000);
                 if(s != null) {
                     numSolved++;
@@ -344,6 +319,117 @@ public class Puzzle {
         }
 
         return fractions;
+    }
+
+    public void exp2Runtime() {
+        // in milliseconds
+        HashMap<Integer, Long> times1 = new HashMap<>();
+        HashMap<Integer, Long> times2 = new HashMap<>();
+
+        // run the algorithms... collect the times
+        int step = 0;
+        for(int numMoves = 5; numMoves < 105; numMoves += 5) {
+            for(int iterations = 0; iterations < 25; iterations++) {
+                setInteractiveBoard(new Board(Board.GOAL));
+                getInteractiveBoard().clearData();
+                generateNRandomMoves(numMoves, numMoves + iterations);
+
+                long startTime1 = System.nanoTime();
+                Board s1 = solvePuzzleAStar("h1");
+                long endTime1 = System.nanoTime();
+                long duration1 = (endTime1 - startTime1);
+
+                long startTime2 = System.nanoTime();
+                Board s2 = solvePuzzleAStar("h2");
+                long endTime2 = System.nanoTime();
+                long duration2 = (endTime2 - startTime2);
+
+                if(times1.get(step) == null) {
+                    times1.put(step,duration1);
+                    times2.put(step, duration2);
+                }
+                else {
+                    times1.put(step, times1.get(step) + duration1);
+                    times1.put(step, times1.get(step) + duration1);
+                }
+            }
+            step++;
+        }
+
+        // average the times
+        int count = 5;
+        String format = "%-40s %-40s %s %n";
+        for(Map.Entry<Integer, Long> e : times1.entrySet()) {
+            int key = e.getKey();
+            String desc = "Random Moves made = " + count;
+            String h1 = "H1: " + ((double) times1.get(key)/1000000)/25;
+            String h2 = "H2: " + ((double)times2.get(key)/1000000)/25;
+            System.out.printf(format, desc, h1, h2);
+            count+=5;
+        }
+    }
+
+    public void expC() {
+        HashMap<Integer, Integer> sLength1 = new HashMap<>();
+        HashMap<Integer, Integer> sLength2 = new HashMap<>();
+        HashMap<Integer, Integer> sLength3 = new HashMap<>();
+
+        setMaxNodes(3000);
+
+        // run the algorithms... collect the times
+        int step = 0;
+        int denominator = 5;
+        boolean failedToSolve = false;
+        for(int numMoves = 5; numMoves < 40; numMoves += 5) {
+            for(int iterations = 0; iterations < 5; iterations++) {
+                setInteractiveBoard(new Board(Board.GOAL));
+                getInteractiveBoard().clearData();
+                generateNRandomMoves(numMoves, numMoves + iterations);
+
+                Board s1 = solvePuzzleAStar("h1");
+                Board s2 = solvePuzzleAStar("h2");
+                Board s3 = beamSearch(910);
+                int beamSolutionLength = 0;
+                Board b = s3;
+                while(b != null) {
+                    beamSolutionLength++;
+                    b = b.getParent();
+                }
+
+                if(sLength1.get(step) == null) {
+                    sLength1.put(step, s1.getG());
+                    sLength2.put(step, s2.getG());
+                    sLength3.put(step, beamSolutionLength);
+                }
+                else {
+                    sLength1.put(step, sLength1.get(step) + s1.getG());
+                    sLength2.put(step, sLength2.get(step) + s2.getG());
+                    sLength3.put(step, sLength3.get(step) + beamSolutionLength);
+                }
+            }
+
+            if(failedToSolve) {
+                denominator--;
+                sLength1.put(step, 0);
+                sLength2.put(step, 0);
+                sLength3.put(step, 0);
+                failedToSolve = false;
+            }
+            step++;
+        }
+
+        // average the times
+        int count = 5;
+        String format = "%-40s %-40s %-40s %s %n";
+        for(Map.Entry<Integer, Integer> e : sLength1.entrySet()) {
+            int key = e.getKey();
+            String desc = "Random Moves made = " + count;
+            String h1 = "H1: " + (double)sLength1.get(key)/denominator;
+            String h2 = "H2: " + (double)sLength2.get(key)/denominator;
+            String beam = "Beam: " + (double)sLength3.get(key)/denominator;
+            System.out.printf(format, desc, h1, h2, beam);
+            count+=5;
+        }
     }
 
 
@@ -414,12 +500,12 @@ public class Puzzle {
                     }
                     int numMoves = Integer.parseInt(inputs[1]);
                     p.setInteractiveBoard(new Board(Board.GOAL));
-                    p.generateNRandomMoves(numMoves);
+                    p.generateNRandomMoves(numMoves, numMoves);
                     break;
                 case "exit":
                     System.exit(1);
                     break;
-                case "exp":
+                case "expA":
                     ArrayList<Double> result = p.expAstarH1();
                     ArrayList<Double> result2 = p.expAstarH2();
                     ArrayList<Double> result3 = p.expBeam();
@@ -427,32 +513,17 @@ public class Puzzle {
                     System.out.println("A* H2: " + result2.toString());
                     System.out.println("Beam: " + result3.toString());
                     break;
+                case "expB":
+                    p.exp2Runtime();
+                    break;
+                case "expC":
+                    p.expC();
+                    break;
                 default:
                     System.out.println("Command not recognized.");
                     break;
             }
         }
-
-
-
-
-//        Board solution = p.solvePuzzleAStar("h2", "b12 643 785");
-//        Board solution = p.beamSearch(500, "b12 643 785");
-//        solution.printBoard();
-//        System.out.println();
-//
-//        Board backtrace = solution;
-//        printSolution(backtrace);
-
-
-//        if(args[0].equals("readFile")) {
-//            String fileName = args[1];
-//            try {
-//                readCommandsFromFile(fileName);
-//            }
-//            catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
+        
     }
 }

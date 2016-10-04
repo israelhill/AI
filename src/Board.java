@@ -16,10 +16,16 @@ public class Board {
 
     public Board(char[][] state) {
         this.boardState = state;
+        this.f = 0;
+        this.h = 0;
+        this.g = 0;
     }
 
     public Board() {
         this.boardState = new char[3][3];
+        this.f = 0;
+        this.h = 0;
+        this.g = 0;
     }
 
     public Board(char[][] state, int g, Board parent) {
@@ -101,7 +107,7 @@ public class Board {
         int offset = 0;
         for(int i = 0; i < 3; i++) {
             for(int j = 0; j < 3; j++) {
-                if(boardState[i][j] != GOAL[i][j]) {
+                if(boardState[i][j] != GOAL[i][j] && boardState[i][j] != 'b') {
                     offset++;
                 }
             }
@@ -118,7 +124,9 @@ public class Board {
         for(int i = 0; i < 3; i++) {
             for(int j = 0; j < 3; j++) {
                 char currentChar = boardState[i][j];
-                totalSum += computeManhattanDistance(currentChar, i, j);
+                if(currentChar != 'b') {
+                    totalSum += computeManhattanDistance(currentChar, i, j);
+                }
             }
         }
         return totalSum;
