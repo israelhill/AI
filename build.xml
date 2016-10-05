@@ -11,8 +11,15 @@
         <delete dir="build"/>
     </target>
 
-    <target name="run" depends="compile, jar">
-        <java jar="build/jar/Puzzle.jar" fork="true"/>
+    <target name="runF" depends="compile, jar">
+        <java jar="build/jar/Puzzle.jar" fork="true">
+            <arg value="-r commands.txt"/>
+        </java>
+    </target>
+
+    <target name="runC" depends="compile, jar">
+        <java jar="build/jar/Puzzle.jar" fork="true">
+        </java>
     </target>
 
     <target name="jar" depends="compile">

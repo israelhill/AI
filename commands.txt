@@ -1,3 +1,6 @@
-doSomething n
-nextCommand hello
-thirdCommand stuff
+expA
+expB
+expC
+setState b12 345 678
+move right
+move down

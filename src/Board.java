@@ -36,6 +36,7 @@ public class Board {
         this.h = computeHeuristic();
         setF(g, h);
         this.parent = parent;
+        directionMoved = null;
     }
 
     public void setDirectionMoved(String direction) {
@@ -66,6 +67,7 @@ public class Board {
         this.f = 0;
         this.h = 0;
         this.g = 0;
+        this.parent = null;
     }
 
     @Override

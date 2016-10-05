@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -41,7 +40,7 @@ public class Puzzle {
     }
 
     public int getMaxNodes() {
-        return maxNodes;
+        return this.maxNodes;
     }
 
     public Board getFoundGoal() {
@@ -75,7 +74,6 @@ public class Puzzle {
         getInteractiveBoard().setHeuristicType(heuristicType);
         Board board = getInteractiveBoard();
         board.setG(0);
-        board.setH(board.computeSumOfManhattan());
 
         queue.offer(board);
         Board solutionBoard = null;
@@ -85,7 +83,6 @@ public class Puzzle {
             Board current = queue.poll();
 
             if(nodesVisited > getMaxNodes()) {
-                System.out.println("Reach max nodes limit");
                 return null;
             }
 
@@ -122,29 +119,41 @@ public class Puzzle {
         getInteractiveBoard().setAlgorithmType("beam");
         getInteractiveBoard().setHeuristicType("h2");
         setFoundGoal(null);
+        setExpExceedMax(false);
         queue.clear();
         Board goal = null;
         ArrayList<Board> bestBoards;
         ArrayList<Board> children = getInteractiveBoard().getValidChildren();
 
+        if(getInteractiveBoard().computeHeuristic() == 0) {
+            return getInteractiveBoard();
+        }
 
+
+        // if the number of children are less than k, consider all the children
         if(children.size() < k) {
             bestBoards = children;
         }
+        // get the top k children
         else {
             bestBoards = getKBestBoards(k, queue, children);
         }
 
+        // continuously generate successors based on the current top k nodes
         while(!bestBoards.isEmpty()) {
+            // get all the children for the top k nodes
             ArrayList<Board> allSuccessors = generateAllSuccessors(bestBoards);
             if(getExceedMax()) {
                 return null;
             }
 
+            // found the goal, break
             if(getFoundGoal() != null) {
                 goal = getFoundGoal();
                 break;
             }
+
+            // we did not find the goal yet, generate the next top k states and repeat
             bestBoards = getKBestBoards(k, queue, allSuccessors);
         }
 
@@ -163,6 +172,7 @@ public class Puzzle {
             best.add(current);
             count++;
         }
+        q.clear();
         return best;
     }
 
@@ -173,7 +183,6 @@ public class Puzzle {
         for(Board b : oldBest) {
 
             if(nodesVisited > getMaxNodes()) {
-                System.out.println("Reach max nodes limit");
                 setExpExceedMax(true);
             }
 
@@ -186,16 +195,6 @@ public class Puzzle {
             allBoards.addAll(children);
         }
         return allBoards;
-    }
-
-    /**
-     * Read commands from a text file
-     * @param fileName
-     * @throws IOException
-     */
-    public void readCommandsFromFile(String fileName) throws IOException {
-        Stream<String> stream = Files.lines(Paths.get(fileName));
-            stream.forEach(System.out::println);
     }
 
     public void generateNRandomMoves(int numMoves, int seed) {
@@ -379,7 +378,7 @@ public class Puzzle {
         // run the algorithms... collect the times
         int step = 0;
         int denominator = 5;
-        boolean failedToSolve = false;
+
         for(int numMoves = 5; numMoves < 40; numMoves += 5) {
             for(int iterations = 0; iterations < 5; iterations++) {
                 setInteractiveBoard(new Board(Board.GOAL));
@@ -407,14 +406,6 @@ public class Puzzle {
                     sLength3.put(step, sLength3.get(step) + beamSolutionLength);
                 }
             }
-
-            if(failedToSolve) {
-                denominator--;
-                sLength1.put(step, 0);
-                sLength2.put(step, 0);
-                sLength3.put(step, 0);
-                failedToSolve = false;
-            }
             step++;
         }
 
@@ -432,17 +423,59 @@ public class Puzzle {
         }
     }
 
+    /**
+     * Read commands from a text file
+     * @param fileName
+     * @throws IOException
+     */
+    public Queue<String> readCommandsFromFile(String fileName) throws IOException {
+        Queue<String> lines = new LinkedList<>();
+        Stream<String> stream = Files.lines(Paths.get(fileName));
+        stream.forEach(lines::add);
+
+        return lines;
+    }
+
 
 
     public static void main(String[] args) {
         Puzzle p = new Puzzle();
+        Queue<String> commandList = new LinkedList<>();
+        boolean readingFile = false;
+        boolean start = true;
+        String inputString;
         Board solution;
+
         Scanner s = new Scanner(System.in);
         while(true) {
-            System.out.println("Enter a command:");
-            String inputString = s.nextLine();
+            if(args.length > 0 && args[0].split(" ")[0].equals("-r") && start) {
+                String fileName = args[0].split(" ")[1];
+                readingFile = true;
+                try {
+                    commandList = p.readCommandsFromFile(fileName);
+                }
+                catch (IOException e) {
+                    System.out.println("Error attempting to read file. Check path");
+                    e.printStackTrace();
+                }
+            }
+
+            if(commandList.size() == 0 && readingFile) {
+                System.exit(1);
+            }
+
+            if(readingFile) {
+                inputString = commandList.remove();
+            }
+            else {
+                System.out.println("Enter a command:");
+                inputString = s.nextLine();
+            }
+
+
             String[] inputs = inputString.split(" ");
             String command = inputs[0];
+
 
             switch(command) {
                 case "solve":
@@ -457,6 +490,8 @@ public class Puzzle {
                             System.out.println("Solving puzzle using Beam search algorithm....");
                             solution = p.beamSearch(k);
                             p.printSolution(solution);
+                            p.setInteractiveBoard(solution);
+                            p.getInteractiveBoard().clearData();
                             break;
                         case "A-star":
                             p = new Puzzle(p.getInteractiveBoard());
@@ -465,6 +500,8 @@ public class Puzzle {
                             System.out.println("Solving puzzle using A* algorithm....");
                             solution = p.solvePuzzleAStar(heuristic);
                             p.printSolution(solution);
+                            p.setInteractiveBoard(solution);
+                            p.getInteractiveBoard().clearData();
                             break;
                         default:
                             System.out.println("Search algorithm not recognized. Check spelling.");
@@ -523,7 +560,9 @@ public class Puzzle {
                     System.out.println("Command not recognized.");
                     break;
             }
+            System.out.println();
+            System.out.println();
+            start = false;
         }
-        
     }
 }
