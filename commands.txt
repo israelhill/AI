@@ -1,6 +1,34 @@
-expA
-expB
-expC
 setState b12 345 678
-move right
-move down
+printState
+solve beam 1
+printState
+setState b12 345 678
+printState
+solve A-star h1
+printState
+setState b12 345 678
+printState
+solve A-star h2
+printState
+setState b32 415 678
+solve beam 1
+printState
+setState b32 415 678
+printState
+solve A-star h1
+printState
+setState 724 5b6 831
+maxNodes 5000
+printState
+solve A-star h2
+printState
+setState 724 5b6 831
+printState
+solve A-star h1
+solve beam 200
+maxNodes 100000
+solve A-star h1
+printState
+setState 724 5b6 831
+solve beam 200
+printState

@@ -9,6 +9,7 @@ public class Puzzle {
     private Board interactiveBoard;
     private int maxNodes = Integer.MAX_VALUE;
     private long SEED = 1234;
+    int bNodesVisited;
     // Seeding the random number generator so that it always returns the same stream of random numbers
     private Random randomNumGen = new Random(SEED);
     private boolean expExceedMax = false;
@@ -30,9 +31,10 @@ public class Puzzle {
         this.interactiveBoard = new Board();
     }
 
-    public Puzzle(Board b) {
+    public Puzzle(Board b, int maxNodes) {
         this.interactiveBoard = b;
         b.clearData();
+        this.maxNodes = maxNodes;
     }
 
     public void setMaxNodes(int num) {
@@ -116,6 +118,7 @@ public class Puzzle {
     }
 
     public Board beamSearch(int k) {
+        bNodesVisited = 0;
         getInteractiveBoard().setAlgorithmType("beam");
         getInteractiveBoard().setHeuristicType("h2");
         setFoundGoal(null);
@@ -144,11 +147,13 @@ public class Puzzle {
             // get all the children for the top k nodes
             ArrayList<Board> allSuccessors = generateAllSuccessors(bestBoards);
             if(getExceedMax()) {
+                bNodesVisited = 0;
                 return null;
             }
 
             // found the goal, break
             if(getFoundGoal() != null) {
+                bNodesVisited = 0;
                 goal = getFoundGoal();
                 break;
             }
@@ -177,16 +182,15 @@ public class Puzzle {
     }
 
     public ArrayList<Board> generateAllSuccessors(ArrayList<Board> oldBest) {
-        int nodesVisited = 0;
         ArrayList<Board> allBoards = new ArrayList<>();
 
         for(Board b : oldBest) {
 
-            if(nodesVisited > getMaxNodes()) {
+            if(bNodesVisited > getMaxNodes()) {
                 setExpExceedMax(true);
             }
 
-            nodesVisited++;
+            bNodesVisited++;
             if(b.computeHeuristic() == 0) {
                 foundGoal = b;
                 break;
@@ -484,24 +488,34 @@ public class Puzzle {
                     switch (algorithm) {
                         case "beam":
                             p.setFoundGoal(null);
-                            p = new Puzzle(p.getInteractiveBoard());
+                            p = new Puzzle(p.getInteractiveBoard(), p.getMaxNodes());
                             int k = Integer.parseInt(arg);
                             p.checkForNullBoard();
                             System.out.println("Solving puzzle using Beam search algorithm....");
                             solution = p.beamSearch(k);
-                            p.printSolution(solution);
-                            p.setInteractiveBoard(solution);
-                            p.getInteractiveBoard().clearData();
+                            if(solution == null) {
+                                System.out.println("Finished without reaching goal.");
+                            }
+                            else {
+                                p.printSolution(solution);
+                                p.setInteractiveBoard(solution);
+                                p.getInteractiveBoard().clearData();
+                            }
                             break;
                         case "A-star":
-                            p = new Puzzle(p.getInteractiveBoard());
+                            p = new Puzzle(p.getInteractiveBoard(), p.getMaxNodes());
                             String heuristic = arg;
                             p.checkForNullBoard();
                             System.out.println("Solving puzzle using A* algorithm....");
                             solution = p.solvePuzzleAStar(heuristic);
-                            p.printSolution(solution);
-                            p.setInteractiveBoard(solution);
-                            p.getInteractiveBoard().clearData();
+                            if(solution == null) {
+                                System.out.println("Finished without reaching goal.");
+                            }
+                            else {
+                                p.printSolution(solution);
+                                p.setInteractiveBoard(solution);
+                                p.getInteractiveBoard().clearData();
+                            }
                             break;
                         default:
                             System.out.println("Search algorithm not recognized. Check spelling.");
@@ -518,11 +532,13 @@ public class Puzzle {
                     p.setBoardState(state);
                     break;
                 case "printState":
+                    System.out.println("Current State: ");
                     p.checkForNullBoard();
                     p.interactiveBoard.printBoard();
                     break;
                 case "move":
                     String direction = inputs[1];
+                    System.out.println("Moving up " + direction);
                     p.checkForNullBoard();
                     p.setInteractiveBoard(p.getInteractiveBoard().move(direction));
                     break;
@@ -535,6 +551,7 @@ public class Puzzle {
                     if(inputs.length < 2) {
                         System.out.println("Missing argument.");
                     }
+                    System.out.println("Randomizing State");
                     int numMoves = Integer.parseInt(inputs[1]);
                     p.setInteractiveBoard(new Board(Board.GOAL));
                     p.generateNRandomMoves(numMoves, numMoves);
@@ -543,6 +560,7 @@ public class Puzzle {
                     System.exit(1);
                     break;
                 case "expA":
+                    System.out.println("Running experiment A ....");
                     ArrayList<Double> result = p.expAstarH1();
                     ArrayList<Double> result2 = p.expAstarH2();
                     ArrayList<Double> result3 = p.expBeam();
@@ -551,9 +569,11 @@ public class Puzzle {
                     System.out.println("Beam: " + result3.toString());
                     break;
                 case "expB":
+                    System.out.println("Running experiment B ....");
                     p.exp2Runtime();
                     break;
                 case "expC":
+                    System.out.println("Running experiment C ....");
                     p.expC();
                     break;
                 default:
